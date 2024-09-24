@@ -1,0 +1,41 @@
+pipeline {
+    agent any
+    environment{
+        AWS_ACCESS_KEY_ID     = credentials('AWS_ACCESS_KEY_ID')
+        AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
+    }
+
+    stages {
+        stage('checkour SCM') {
+            steps {
+                script{
+                    checkout scmGit(branches: [[name: '*/master']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/vipinsharma16/Jenkins-terraform-project.git']])
+                }
+            }
+        }
+        stage('initilize terraform') {
+            steps {
+                script{
+                    sh 'terraform init'
+                }
+                
+            }
+        }
+        stage('plan terraform') {
+            steps {
+                script{
+                    sh 'terraform plan'
+                }
+                input message: 'Do you want to approve the deployment?', ok: 'Yes'
+            }
+        }
+        stage('terraform action') {
+            steps {
+                script{
+                    sh 'terraform $action --auto-approve'
+                }
+            }
+        }
+        
+    }
+}
